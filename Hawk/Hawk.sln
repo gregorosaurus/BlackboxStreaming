@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 25.0.1703.5
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hawk", "Hawk\Hawk.csproj", "{96CEEE48-D1FF-4BC0-AB30-B0E5234907F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hawk.ARINC717", "Hawk.ARINC717\Hawk.ARINC717.csproj", "{0389E786-F83D-4AA5-AD8B-13354450EBAD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{96CEEE48-D1FF-4BC0-AB30-B0E5234907F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96CEEE48-D1FF-4BC0-AB30-B0E5234907F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96CEEE48-D1FF-4BC0-AB30-B0E5234907F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96CEEE48-D1FF-4BC0-AB30-B0E5234907F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0389E786-F83D-4AA5-AD8B-13354450EBAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0389E786-F83D-4AA5-AD8B-13354450EBAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0389E786-F83D-4AA5-AD8B-13354450EBAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0389E786-F83D-4AA5-AD8B-13354450EBAD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {126A6645-BD82-4A1C-9340-17C70E5DEF99}
+	EndGlobalSection
+EndGlobal

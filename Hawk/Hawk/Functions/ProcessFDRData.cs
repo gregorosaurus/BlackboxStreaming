@@ -5,13 +5,15 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Text.Json;
+using Hawk.Models;
 
 namespace Hawk.Functions
 {
     public class ProcessFDRData
     {
-        [FunctionName("ProcessFDRData")]
-        public static async Task Run([EventHubTrigger("evt-blackbox-fdrraw", Connection = "EventHubConnectionString")] EventData[] events, ILogger log)
+        [FunctionName("ProcessFDRSubframe")]
+        public async Task ProcessFDRSubframe([EventHubTrigger("evt-blackbox-fdrraw", Connection = "EventHubConnectionString")] EventData[] events, ILogger log)
         {
             var exceptions = new List<Exception>();
 
@@ -19,9 +21,9 @@ namespace Hawk.Functions
             {
                 try
                 {
-                    // Replace these two lines with your processing logic.
-                    log.LogInformation($"C# Event Hub trigger function processed a message: {eventData.EventBody}");
-                    await Task.Yield();
+                    RawDataMessage? dataMessage = JsonSerializer.Deserialize<RawDataMessage>(eventData.EventBody.ToString());
+                    if (dataMessage != null)
+                        await DecodeRawSubframeDataAsync(dataMessage!);
                 }
                 catch (Exception e)
                 {
@@ -36,6 +38,11 @@ namespace Hawk.Functions
 
             if (exceptions.Count == 1)
                 throw exceptions.Single();
+        }
+
+        private Task DecodeRawSubframeDataAsync(RawDataMessage message)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -24,7 +24,7 @@ namespace Blackbird.Services
         private DataLakeFileSystemClient _fdrFileSystemClient;
 
         private const string RecordingStagingDirectory = "_recording";
-        private const string RecordingStartTimeMetadataKey = "RecordingStartTime";
+        private const string RecordingStartTimeMetadataKey = "recording_start_time";
         private static readonly TimeSpan RecordingCloseThreshold = TimeSpan.FromMinutes(15);
 
         public AzureQARDataService(Options options)
@@ -54,6 +54,8 @@ namespace Blackbird.Services
             DataLakeDirectoryClient recordingDirectory = _fdrFileSystemClient.GetDirectoryClient(RecordingStagingDirectory);
             DataLakeFileClient recordingFile = recordingDirectory.GetFileClient($"{registration}.fdr");
 
+            
+
             //we assume the recording directory is created, we don't want to check every subframe. 
 
             if (!(await recordingFile.ExistsAsync()))
@@ -61,13 +63,15 @@ namespace Blackbird.Services
                 await StartFDRRecordingAsync(recordingFile);
             }
 
-            
-            var response = await recordingFile.AppendAsync(subframeStream, 0);
-            if (response.Status / 100 != 2)
+            var props = await recordingFile.GetPropertiesAsync();
+            Int64 currentLength = props.Value.ContentLength;
+
+            await recordingFile.AppendAsync(subframeStream, currentLength);
+            var response = await recordingFile.FlushAsync(currentLength + subframeStream.Length);
+            if (response.GetRawResponse().Status / 100 != 2)
             {
-                throw new Exception($"Invalid status code returned by blob storage: {response.Status}");
+                throw new Exception($"Invalid status code returned by blob storage: {response.GetRawResponse().Status}");
             }
-          
         }
 
         public async Task UploadSubframeAsync(string registration, byte[] subframeData)

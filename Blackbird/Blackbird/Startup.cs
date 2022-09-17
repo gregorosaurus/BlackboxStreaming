@@ -17,7 +17,7 @@ namespace Blackbird
             {
                 return new Services.AzureQARDataService.Options()
                 {
-                    DataLakeClient = new DataLakeServiceClient(Environment.GetEnvironmentVariable("AzureBlobDataStorage"))
+                    DataLakeClient = new DataLakeServiceClient(Environment.GetEnvironmentVariable("AzureFDRDataStorage"))
                 };
             });
             builder.Services.AddScoped<Services.IQARDataManagementService, Services.AzureQARDataService>();

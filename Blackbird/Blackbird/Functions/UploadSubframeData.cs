@@ -13,7 +13,7 @@ namespace Blackbird
     public class UploadSubframeData
     {
         private Services.IQARDataManagementService _qarService;
-        private UploadSubframeData(Services.IQARDataManagementService qarService)
+        public UploadSubframeData(Services.IQARDataManagementService qarService)
         {
             _qarService = qarService;
         }

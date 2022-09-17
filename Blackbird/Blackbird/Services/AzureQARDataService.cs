@@ -54,6 +54,7 @@ namespace Blackbird.Services
             DataLakeDirectoryClient recordingDirectory = _fdrFileSystemClient.GetDirectoryClient(RecordingStagingDirectory);
             DataLakeFileClient recordingFile = recordingDirectory.GetFileClient($"{registration}.fdr");
 
+            //we assume the recording directory is created, we don't want to check every subframe. 
 
             if (!(await recordingFile.ExistsAsync()))
             {

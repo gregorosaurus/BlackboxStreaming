@@ -63,7 +63,7 @@ namespace Hawk.Functions
             FDRDecoder decoder = new FDRDecoder(config!);
             var decodedValues = decoder.DecodeSubframe(message.SubframeBinaryData);
 
-            await _fdrNotificationService.SendNotificationOfDecodedDataAsync(decodedValues);
+            await _fdrNotificationService.SendNotificationOfDecodedDataAsync(message.AircraftIdentifier, decodedValues);
         }
     }
 }

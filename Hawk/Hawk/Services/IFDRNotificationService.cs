@@ -6,7 +6,7 @@ namespace Hawk.Services
 {
     public interface IFDRNotificationService
     {
-        Task SendNotificationOfDecodedDataAsync(Dictionary<string, object[]> decodedData);
+        Task SendNotificationOfDecodedDataAsync(string acIdent, Dictionary<string, List<object>> decodedData);
     }
 }
 

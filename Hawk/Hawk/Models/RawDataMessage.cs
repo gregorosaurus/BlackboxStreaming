@@ -3,7 +3,7 @@ namespace Hawk.Models
 {
     public class RawDataMessage
     {
-        public string? AircraftIdentifier { get; set; }
+        public string AircraftIdentifier { get; set; } = "";
         public DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
         /// <summary>
         /// base64 encoded subframe data

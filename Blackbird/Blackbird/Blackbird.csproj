@@ -8,12 +8,15 @@
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.1" />
     <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.11.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.7.2" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Blackbird\" />
     <None Remove="Azure.Storage.Files.DataLake" />
     <None Remove="Functions\" />
     <None Remove="Microsoft.Azure.Functions.Extensions" />
+    <None Remove="Azure.Messaging.EventHubs" />
+    <None Remove="Models\" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
@@ -26,5 +29,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Functions\" />
+    <Folder Include="Models\" />
   </ItemGroup>
 </Project>

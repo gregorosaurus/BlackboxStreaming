@@ -13,9 +13,11 @@ namespace Blackbird
     public class UploadSubframeData
     {
         private Services.IQARDataManagementService _qarService;
-        public UploadSubframeData(Services.IQARDataManagementService qarService)
+        private Services.IFDRDataNotificationService _fdrNotificationService;
+        public UploadSubframeData(Services.IQARDataManagementService qarService, Services.IFDRDataNotificationService fdrNotificationService)
         {
             _qarService = qarService;
+            _fdrNotificationService = fdrNotificationService;
         }
 
         [FunctionName("UploadSubframeData")]
@@ -31,7 +33,18 @@ namespace Blackbird
                 return new BadRequestResult();
             }
 
-            await _qarService.UploadSubframeAsync(acIdent, req.Body);
+            byte[] subframeBuffer = new byte[req.Body.Length];
+            int bytesRead = await req.Body.ReadAsync(subframeBuffer);
+            if (bytesRead != req.Body.Length)
+                throw new Exception("Invalid read");
+
+
+            //wait until the data is saved. 
+            await _qarService.UploadSubframeAsync(acIdent, subframeBuffer);
+
+            //we dont want to await for this task to complete
+            #pragma warning disable CS4014
+            _fdrNotificationService.NotifyOfNewSubframeDataAsync(acIdent, subframeBuffer);
 
             return new OkObjectResult("Success");
         }

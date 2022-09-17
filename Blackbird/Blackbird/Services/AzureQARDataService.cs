@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
+using Microsoft.Extensions.Logging;
 
 namespace Blackbird.Services
 {
@@ -27,12 +28,14 @@ namespace Blackbird.Services
         private const string RecordingStartTimeMetadataKey = "recording_start_time";
         private static readonly TimeSpan RecordingCloseThreshold = TimeSpan.FromMinutes(15);
 
-        public AzureQARDataService(Options options)
+        private ILogger<AzureQARDataService> _logger;
+        public AzureQARDataService(Options options, ILogger<AzureQARDataService> logger)
         {
             if (options.DataLakeClient == null)
                 throw new ArgumentNullException("Options.BlobServiceClient");
 
             _fdrFileSystemClient = options.DataLakeClient.GetFileSystemClient(options.DataUploadFileSystemName);
+            _logger = logger;
         }
 
 
@@ -49,17 +52,18 @@ namespace Blackbird.Services
         /// <returns></returns>
         public async Task UploadSubframeAsync(string registration, Stream subframeStream)
         {
+            _logger.LogTrace($"uploading subframe data from {registration}");
+
             //check to see if there is a current recording
             //get recording folder
             DataLakeDirectoryClient recordingDirectory = _fdrFileSystemClient.GetDirectoryClient(RecordingStagingDirectory);
             DataLakeFileClient recordingFile = recordingDirectory.GetFileClient($"{registration}.fdr");
 
-            
-
             //we assume the recording directory is created, we don't want to check every subframe. 
 
             if (!(await recordingFile.ExistsAsync()))
             {
+                _logger.LogInformation($"Creating new recording for aircraft {registration}");
                 await StartFDRRecordingAsync(recordingFile);
             }
 
@@ -86,6 +90,7 @@ namespace Blackbird.Services
 
         private async Task StartFDRRecordingAsync(DataLakeFileClient recordingFile)
         {
+            
             //create a new append blob
             await recordingFile.CreateAsync();
 
@@ -124,8 +129,11 @@ namespace Blackbird.Services
                 {
                     //CLOSE
                     //by closing it, we mean moving it to the specific directory.
-                    string acIdent = aircraftRecording.Name.Substring(0, aircraftRecording.Name.LastIndexOf(".fdr"));
-                    DataLakeFileClient acRecordingFile = recordingDirectory.GetFileClient(aircraftRecording.Name);
+                    string acIdent = Path.GetFileNameWithoutExtension(aircraftRecording.Name);
+
+                    _logger.LogInformation($"Creating recording for aircraft {acIdent}");
+
+                    DataLakeFileClient acRecordingFile = _fdrFileSystemClient.GetFileClient(aircraftRecording.Name);
                     var propertiesResponse = await acRecordingFile.GetPropertiesAsync();
                     DateTime? recordingSaveTime = null;
                     if (propertiesResponse.Value.Metadata.TryGetValue(RecordingStartTimeMetadataKey, out string? startTimeStringValue))
@@ -138,7 +146,16 @@ namespace Blackbird.Services
                     if(recordingSaveTime == null)
                         recordingSaveTime = DateTime.UtcNow; //just in case we didn't have it in the metadata, let's still keep going
 
-                    await acRecordingFile.RenameAsync($"{acIdent}/{recordingSaveTime.Value.Year}/{recordingSaveTime.Value.Month.ToString("00")}/{recordingSaveTime.Value.Day.ToString("00")}");
+                    string fileName = String.Join("_",
+                        acIdent,
+                        recordingSaveTime.Value.ToString("yyyyMMddHHmmss"),
+                        DateTime.UtcNow.ToString("yyyyMMddHHmmss")) + ".fdr";
+                    string saveFolder = $"{acIdent}/{recordingSaveTime.Value.Year}/{recordingSaveTime.Value.Month.ToString("00")}/{recordingSaveTime.Value.Day.ToString("00")}";
+
+                    DataLakeDirectoryClient saveFolderDirClient = _fdrFileSystemClient.GetDirectoryClient(saveFolder);
+                    await saveFolderDirClient.CreateIfNotExistsAsync();
+
+                    await acRecordingFile.RenameAsync($"{saveFolder}/{fileName}");
                 }
                 else
                 {

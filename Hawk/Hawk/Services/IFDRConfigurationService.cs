@@ -6,7 +6,7 @@ namespace Hawk.Services
 {
     public interface IFDRConfigurationService
     {
-        Task<DataFrameConfiguration?> FindConfiguration(string acIdent);
+        Task<DataFrameConfiguration?> FindConfigurationAsync(string acIdent);
     }
 }
 

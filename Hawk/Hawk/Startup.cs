@@ -18,11 +18,21 @@ namespace Hawk
                 return new Services.AzureBlobConfigurationService.Options()
                 {
                     ConfigurationFileSystem = "configs",
-                    DataLakeServiceClient = new DataLakeServiceClient("AzureDataLakeConnectionString")
+                    DataLakeServiceClient = new DataLakeServiceClient(Environment.GetEnvironmentVariable("AzureDataLakeConnectionString"))
                 };
             });
 
             builder.Services.AddScoped<Services.IFDRConfigurationService, Services.AzureBlobConfigurationService>();
+
+            builder.Services.AddSingleton<Services.EventHubFDRNotificationService.Options>(e =>
+            {
+                return new Services.EventHubFDRNotificationService.Options()
+                {
+                    EventHubConnectionString = Environment.GetEnvironmentVariable("EventHubConnectionString"),
+                    EventHubName = "evh-blackbox-decoded"
+                };
+            });
+            builder.Services.AddScoped<Services.IFDRNotificationService, Services.EventHubFDRNotificationService>();
         }
     }
 }

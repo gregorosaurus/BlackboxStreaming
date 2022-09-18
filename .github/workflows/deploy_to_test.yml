@@ -1,5 +1,5 @@
 
-name: CI
+name: Blackbox Streaming Deployment
 
 env:
   AZURE_FUNCTIONAPP_BLACKBIRD_NAME: fn-blackbox-blackbird-test-cc

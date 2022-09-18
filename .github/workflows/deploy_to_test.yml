@@ -1,5 +1,5 @@
 
-name: CI
+name: Blackbox Streaming Deployment
 
 env:
   AZURE_FUNCTIONAPP_BLACKBIRD_NAME: fn-blackbox-blackbird-test-cc
@@ -51,9 +51,9 @@ jobs:
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/blackbird  Blackbird/Blackbird.sln
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+      - name: Deploy to Azure Function
+        id: deploy-to-function
+        uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_BLACKBIRD_NAME }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_BLACKBIRD_PUBLISH_PROFILE_TEST }}
@@ -90,9 +90,9 @@ jobs:
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/hawk  Hawk/Hawk.sln
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+      - name: Deploy to Azure Function
+        id: deploy-to-function
+        uses: Azure/functions-action@v1
         with:
           app-name: ${{ env.AZURE_FUNCTIONAPP_HAWK_NAME }}
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_HAWK_PUBLISH_PROFILE_TEST }}

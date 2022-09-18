@@ -52,28 +52,29 @@ func startEmulation() {
 
 	fdrFile, err := os.Open(datapath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Unable to open fdr data file: %s", err)
 	}
 
 	httpClient := &http.Client{
 		Timeout: time.Second * 2,
 	}
 
-	buffer := make([]byte, wps)
+	var buffersize int = wps * 2
+	buffer := make([]byte, buffersize)
 
 	for {
 		bytesRead, err := fdrFile.Read(buffer)
-		if bytesRead != wps {
+		if bytesRead != wps*2 {
 			log.Fatal("Invalid byte read")
 		}
 		if err != nil && err != io.EOF {
-			log.Fatal(err)
+			log.Fatalf("Unable to read file into buffer: %s", err)
 		}
 
 		//we have read the data, now send it to the endpoint
 		response, err := httpClient.Post(serverEndpoint+"?ident="+acIdent, "application/octet-stream", bytes.NewReader(buffer))
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("Unable to send data to endpoint: %s", err)
 		}
 
 		if response.StatusCode != 200 {

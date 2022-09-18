@@ -36,10 +36,16 @@ namespace Hawk.Services
                 ProcessedTime = DateTime.UtcNow,
                 DecodedValues = decodedData
             };
-            EventData eventData = new EventData(JsonSerializer.Serialize(message, new JsonSerializerOptions()
+            string json = JsonSerializer.Serialize(message, new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            }));
+            });
+
+            EventData eventData = new EventData(json)
+            {
+                ContentType = "application/json",
+            };
+            eventData.Properties.Add("aircraft", acIdent);
             await _producer.SendAsync(new EventData[] { eventData });
         }
     }

@@ -15,5 +15,15 @@
     <Folder Include="wwwroot\js\" />
     <Folder Include="wwwroot\js\modules\" />
     <Folder Include="wwwroot\img\" />
+    <Folder Include="Services\" />
+    <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Services\" />
+    <None Remove="Models\" />
+    <None Remove="Azure.Messaging.EventHubs.Processor" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.7.2" />
   </ItemGroup>
 </Project>

@@ -14,28 +14,31 @@
         </div>
 
         <div class="col-8">
-
+            <p>Data last received: @DataLastReceived?.ToString("yyyy-MM-dd HH:mm:ss")</p>
             <div class="row" id="stat-cards" style="margin-top:0.5em;">
                 <div class="col-md-4">
                     <div class="data-card">
                         <div class="data-card-heading">Altitude (Feet)</div>
-                        <div class="data-card-value">-</div>
+                        <div class="data-card-value">@AltitudeValue</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="data-card">
                         <div class="data-card-heading">Speed (Knots)</div>
-                        <div class="data-card-value">-</div>
+                        <div class="data-card-value">@SpeedValue</div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="data-card">
                         <div class="data-card-heading">Heading (ºTrue)</div>
-                        <div class="data-card-value">-</div>
+                        <div class="data-card-value">@HeadingValue</div>
                     </div>
                 </div>
             </div>
 
+            <div class="row" id="stat-cards" style="margin-top:0.5em;">
+
+            </div>
         </div>
 
     </div>
@@ -44,6 +47,16 @@
 @code {
 
     private IJSObjectReference? _liveModule;
+
+    private string? AltitudeValue;
+    private string? SpeedValue;
+    private string? HeadingValue;
+
+    public DateTime? DataLastReceived;
+
+    private Dictionary<string, object> LatestValues = new Dictionary<string, object>();
+
+    
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -62,6 +75,32 @@
 
     public void ProcessNewData(DecodedDataMessage message)
     {
+        this.InvokeAsync(() =>
+        {
+            DataLastReceived = DateTime.UtcNow;
+            foreach (var key in message.DecodedValues.Keys)
+            {
+                if (key.Contains("ALTITUDE"))
+                {
+                    this.AltitudeValue = message.DecodedValues[key].LastOrDefault()?.ToString();
+                }
+                else if (key.Contains("COMPUTED_AIRSPEED"))
+                {
+                    SpeedValue = message.DecodedValues[key].LastOrDefault()?.ToString();
+                }
+                else if (key.Contains("COMPUTED_AIRSPEED"))
+                {
+                    SpeedValue = message.DecodedValues[key].LastOrDefault()?.ToString();
+                }
 
+                if (!LatestValues.ContainsKey(key))
+                {
+                    LatestValues.Add(key, 0);
+                }
+                LatestValues[key] = message.DecodedValues[key];
+            }
+
+            StateHasChanged();
+        });
     }
 }

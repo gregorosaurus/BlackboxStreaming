@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -20,6 +21,8 @@ var serverEndpoint string
 
 var acIdent string
 
+var minutesToSkip int = 0
+
 func main() {
 	log.Println("Hello to Kiwi, the aircraft data emulator")
 
@@ -27,6 +30,7 @@ func main() {
 	flag.IntVar(&wps, "wps", 0, "The words per second value of the data")
 	flag.StringVar(&serverEndpoint, "endpoint", "", "The endpoint we are going to send the data to. ")
 	flag.StringVar(&acIdent, "acident", "CKIWI", "The aircraft identifier to emulate")
+	flag.IntVar(&minutesToSkip, "skipmins", 0, "Number of minutes to start at in the data file")
 	flag.Parse()
 
 	//confirm things
@@ -56,11 +60,18 @@ func startEmulation() {
 	}
 
 	httpClient := &http.Client{
-		Timeout: time.Second * 2,
+		Timeout: time.Second * 3,
 	}
 
 	var buffersize int = wps * 2
 	buffer := make([]byte, buffersize)
+
+	//read 10 mins into the flight, testing
+	i := 0
+	for i < minutesToSkip*60*4 {
+		fdrFile.Read(buffer)
+		i += 1
+	}
 
 	for {
 		bytesRead, err := fdrFile.Read(buffer)
@@ -72,14 +83,27 @@ func startEmulation() {
 		}
 
 		//we have read the data, now send it to the endpoint
-		response, err := httpClient.Post(serverEndpoint+"?ident="+acIdent, "application/octet-stream", bytes.NewReader(buffer))
+		var requestUrl = serverEndpoint
+		if strings.Contains(requestUrl, "?") {
+			requestUrl += "&ident=" + acIdent
+		} else {
+			requestUrl += "?ident=" + acIdent
+		}
+		response, err := httpClient.Post(requestUrl, "application/octet-stream", bytes.NewReader(buffer))
 		if err != nil {
 			log.Fatalf("Unable to send data to endpoint: %s", err)
 		}
 
 		if response.StatusCode != 200 {
-			log.Fatalf("Invalid response when sending fdr data: %d", response.StatusCode)
+			if b, err := io.ReadAll(response.Body); err == nil {
+				log.Fatalf("Invalid response when sending fdr data: %d\n%s", response.StatusCode, string(b))
+			} else {
+				log.Fatalf("Invalid response when sending fdr data: %d", response.StatusCode)
+			}
+
 		}
+
+		response.Body.Close()
 
 		time.Sleep(1 * time.Second) //wait for the next subframe.
 	}

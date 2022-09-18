@@ -30,7 +30,7 @@ namespace Loon.Services
             public string? EventHubNamespaceConnectionString { get; set; }
             public string? EventHubName { get; set; }
             public string? EventHubConsumerGroup { get; set; }
-            public string? BlobStorageConnection { get; set; }
+            public string? BlobStorageConnectionString { get; set; }
             public string BlobStorageContainerName { get; set; } = "loon-evh-control";
         }
 
@@ -41,11 +41,17 @@ namespace Loon.Services
 
         public DataSubscriptionService(Options options)
         {
-            var blobContainerClient = new BlobContainerClient(options.BlobStorageConnection, options.BlobStorageContainerName);
+            var blobContainerClient = new BlobContainerClient(options.BlobStorageConnectionString, options.BlobStorageContainerName);
             _processor = new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceConnectionString, options.EventHubName);
             _processor.ProcessEventAsync += ProcessEventHandler;
+            _processor.ProcessErrorAsync += ProcessErrorAsync;
         }
 
+        private Task ProcessErrorAsync(ProcessErrorEventArgs arg)
+        {
+            Console.WriteLine("Error:" + arg.Exception.Message);
+            return Task.FromResult(0);
+        }
 
         public void AddSubscriber(IDataSubscriptionSubscriber subscriber)
         {
@@ -63,6 +69,7 @@ namespace Loon.Services
             if(_lastTimeCheckpointed == null || DateTime.UtcNow - _lastTimeCheckpointed! > TimeSpan.FromSeconds(30))
             {
                 await eventArgs.UpdateCheckpointAsync(eventArgs.CancellationToken);
+                _lastTimeCheckpointed = DateTime.UtcNow;
             }
 
             string json = eventArgs.Data.EventBody.ToString();

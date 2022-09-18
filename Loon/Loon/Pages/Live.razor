@@ -1,6 +1,10 @@
 ﻿@page "/live"
+@using Models;
 @inject IJSRuntime JS;
 @inject IConfiguration _configuration;
+@inject Services.DataSubscriptionService _dataSvc;
+@implements Services.IDataSubscriptionSubscriber;
+@implements IDisposable;
 
 <div class="live-container container-fluid">
     <div class="row">
@@ -45,9 +49,19 @@
     {
         if (firstRender)
         {
+            _dataSvc.AddSubscriber(this);
             _liveModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/modules/live.js");
 
             await _liveModule!.InvokeVoidAsync("initMap", _configuration.GetValue<string>("AzureMapsKey"));
         }
+    }
+
+    public void Dispose() {
+        _dataSvc.RemoveSubscriber(this);
+    }
+
+    public void ProcessNewData(DecodedDataMessage message)
+    {
+
     }
 }

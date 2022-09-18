@@ -57,6 +57,15 @@ namespace Hawk.Decode
                         values.Add(parameter.Name, new List<object>());
 
                     values[parameter.Name].Add(value);
+
+                    if (_lastParameterValues.ContainsKey(parameter.Name))
+                    {
+                        _lastParameterValues[parameter.Name] = value;
+                    }
+                    else
+                    {
+                        _lastParameterValues.Add(parameter.Name, value);
+                    }
                 }
             }
 

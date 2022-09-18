@@ -60,7 +60,7 @@ func startEmulation() {
 	}
 
 	httpClient := &http.Client{
-		Timeout: time.Second * 3,
+		Timeout: time.Second * 5,
 	}
 
 	var buffersize int = wps * 2

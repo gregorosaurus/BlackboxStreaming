@@ -33,6 +33,11 @@ namespace Hawk.Functions
         [FunctionName("ProcessFDRSubframe")]
         public async Task ProcessFDRSubframe([EventHubTrigger("evh-blackbox-fdrraw", Connection = "EventHubConnectionString", ConsumerGroup = "hawk")] EventData[] events, ILogger log)
         {
+
+#if DEBUG
+            DateTime startTime = DateTime.UtcNow;
+            log.LogInformation($"Started processing message @ {startTime.ToString("yyyy-MM-dd\\THH:mm:ss")}");
+#endif
             var exceptions = new List<Exception>();
 
             foreach (EventData eventData in events)
@@ -53,6 +58,12 @@ namespace Hawk.Functions
                     exceptions.Add(e);
                 }
             }
+#if DEBUG
+            DateTime endTime = DateTime.UtcNow;
+            log.LogTrace($"Finished processing message @ {endTime.ToString("yyyy-MM-dd\\THH:mm:ss")}");
+            log.LogTrace($"Total processing time {(endTime - startTime).TotalSeconds}");
+#endif
+
         }
 
         private async Task DecodeRawSubframeDataAsync(RawDataMessage message, ILogger log)

@@ -18,7 +18,7 @@ export function initMap(subscriptionKey) {
     _map.events.add('ready', function () {
         //Create a HTML marker and add it to the map.
         _marker = new atlas.HtmlMarker({
-            htmlContent: '<div class="pulseIcon"></div>',
+            htmlContent: '<div class="plane-container"><img src=\"/img/plane_blue.png\"/><div class="pulseIcon"></div></div>',
             position: [-114, 51]
         });
 

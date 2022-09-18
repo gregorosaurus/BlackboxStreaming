@@ -88,9 +88,9 @@
                 {
                     SpeedValue = message.DecodedValues[key].LastOrDefault()?.ToString();
                 }
-                else if (key.Contains("COMPUTED_AIRSPEED"))
+                else if (key.Contains("HEADING"))
                 {
-                    SpeedValue = message.DecodedValues[key].LastOrDefault()?.ToString();
+                    HeadingValue = message.DecodedValues[key].LastOrDefault()?.ToString();
                 }
 
                 if (!LatestValues.ContainsKey(key))

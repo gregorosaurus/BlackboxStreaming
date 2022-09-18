@@ -22,7 +22,7 @@ namespace Hawk
                 };
             });
 
-            builder.Services.AddScoped<Services.IFDRConfigurationService, Services.AzureBlobConfigurationService>();
+            builder.Services.AddSingleton<Services.IFDRConfigurationService, Services.AzureBlobConfigurationService>();
 
             builder.Services.AddSingleton<Services.EventHubFDRNotificationService.Options>(e =>
             {
@@ -32,7 +32,7 @@ namespace Hawk
                     EventHubName = "evh-blackbox-decoded"
                 };
             });
-            builder.Services.AddScoped<Services.IFDRNotificationService, Services.EventHubFDRNotificationService>();
+            builder.Services.AddSingleton<Services.IFDRNotificationService, Services.EventHubFDRNotificationService>();
 
             builder.Services.AddSingleton<Services.ConfigurationCache>();
         }

@@ -13,6 +13,7 @@ namespace Hawk.Services
         public ConfigurationCache(Services.IFDRConfigurationService configService)
         {
             _configService = configService;
+            this.RefreshAsync().Wait();
         }
         public async Task RefreshAsync()
         {

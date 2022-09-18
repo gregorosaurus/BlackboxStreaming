@@ -17,11 +17,13 @@
     <Folder Include="wwwroot\img\" />
     <Folder Include="Services\" />
     <Folder Include="Models\" />
+    <Folder Include="Utility\" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Services\" />
     <None Remove="Models\" />
     <None Remove="Azure.Messaging.EventHubs.Processor" />
+    <None Remove="Utility\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.7.2" />

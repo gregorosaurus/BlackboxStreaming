@@ -23,5 +23,15 @@ export function initMap(subscriptionKey) {
         });
 
         _map.markers.add(_marker);
+
+    });
+}
+
+export function updatePlanePos(latitude, longitude, trueTrack) {
+    //atlas.animations.setCoordinates(_marker, [longitude, latitude], { duration: 250, autoPlay: true });
+
+    _marker.setOptions({
+        htmlContent: '<div class="plane-container"><img src="/img/plane_blue.png" style=\"transform: rotate(' + trueTrack + 'deg);\"/><div class="pulseIcon"></div></div>',
+        position: [longitude, latitude]
     });
 }

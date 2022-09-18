@@ -56,7 +56,9 @@
 
     private Dictionary<string, object> LatestValues = new Dictionary<string, object>();
 
-    
+    private decimal? lastLatitude;
+    private decimal? lastLongitude;
+    private decimal? lastTrueTrackAngle;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -92,15 +94,38 @@
                 {
                     HeadingValue = message.DecodedValues[key].LastOrDefault()?.ToString();
                 }
+                else if (key == "DERIVED_LATITUDE")
+                {
+                    lastLatitude = message.DecodedValues[key].FirstOrDefault() as decimal? ?? lastLatitude;
+                }
+                else if (key == "DERIVED_LONGITUDE")
+                {
+                    lastLongitude = message.DecodedValues[key].FirstOrDefault() as decimal? ?? lastLongitude;
+                }
+                else if (key.Contains("TRACK_ANGLE_TRUE"))
+                {
+                    lastTrueTrackAngle = message.DecodedValues[key].FirstOrDefault() as decimal? ?? lastTrueTrackAngle;
+                }
 
                 if (!LatestValues.ContainsKey(key))
                 {
                     LatestValues.Add(key, 0);
                 }
                 LatestValues[key] = message.DecodedValues[key];
+
             }
+
+            UpdatePlanePosition();
 
             StateHasChanged();
         });
+    }
+
+    private async Task UpdatePlanePosition()
+    {
+        if (lastLongitude == null || lastLatitude == null)
+            return;
+
+        await _liveModule!.InvokeVoidAsync("updatePlanePos", lastLatitude.Value, lastLongitude.Value, lastTrueTrackAngle);
     }
 }

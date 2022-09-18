@@ -1,0 +1,99 @@
+
+name: CI
+
+env:
+  AZURE_FUNCTIONAPP_BLACKBIRD_NAME: fn-blackbox-blackbird-test-cc
+  AZURE_FUNCTIONAPP_HAWK_NAME: fn-blackbox-hawk-test-cc
+  DOTNET_VERSION: '6.0.*' 
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build_and_deploy_blackbird:
+    runs-on: ubuntu-latest
+    environment:
+      name: 'Test'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Set up dependency caching for faster builds
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release Blackbird/Blackbird.sln
+
+      - name: dotnet publish
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/blackbird  Blackbird/Blackbird.sln
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_BLACKBIRD_NAME }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_BLACKBIRD_PUBLISH_PROFILE_TEST }}
+          package: ${{env.DOTNET_ROOT}}/blackbird
+          
+  build_and_deploy_hawk:
+    runs-on: ubuntu-latest
+    environment:
+      name: 'Test'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+      
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v3
+        with:
+          ref: 'main'
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Set up dependency caching for faster builds
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Build with dotnet
+        run: dotnet build --configuration Release Hawk/Hawk.sln
+
+      - name: dotnet publish
+        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/hawk  Hawk/Hawk.sln
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_HAWK_NAME }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_HAWK_PUBLISH_PROFILE_TEST }}
+          package: ${{env.DOTNET_ROOT}}/hawk

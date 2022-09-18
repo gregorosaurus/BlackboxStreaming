@@ -1,4 +1,32 @@
 ﻿.live-container {
-    background: red;
-    width: 100%;
+    
+}
+
+#map-area {
+    background:black;
+}
+
+.fh {
+    height: calc(100vh - 3.5em - 5px) !important;
+}
+
+
+.data-card {
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+    padding:0.7em;
+    min-height:100px;
+    width:100%;
+}
+
+.data-card-heading {
+    font-size:1.1em;
+    font-weight:bold;
+}
+
+.data-card-value {
+    font-size: 5.5em;
+    background-image: linear-gradient(80deg, #0056a6, #00d676);
+    background-clip: text;
+    color: transparent;
+    font-weight: bold;
 }

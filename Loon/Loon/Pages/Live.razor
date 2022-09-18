@@ -1,6 +1,53 @@
 ﻿@page "/live"
+@inject IJSRuntime JS;
+@inject IConfiguration _configuration;
+
+<div class="live-container container-fluid">
+    <div class="row">
+
+        <div class="col-4 fh" id="map-area">
+
+        </div>
+
+        <div class="col-8">
+
+            <div class="row" id="stat-cards" style="margin-top:0.5em;">
+                <div class="col-md-4">
+                    <div class="data-card">
+                        <div class="data-card-heading">Altitude (Feet)</div>
+                        <div class="data-card-value">-</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="data-card">
+                        <div class="data-card-heading">Speed (Knots)</div>
+                        <div class="data-card-value">-</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="data-card">
+                        <div class="data-card-heading">Heading (ºTrue)</div>
+                        <div class="data-card-value">-</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
 
 @code {
 
+    private IJSObjectReference? _liveModule;
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _liveModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/modules/live.js");
+
+            await _liveModule!.InvokeVoidAsync("initMap", _configuration.GetValue<string>("AzureMapsKey"));
+        }
     }
+}

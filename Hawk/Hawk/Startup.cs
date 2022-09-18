@@ -33,6 +33,8 @@ namespace Hawk
                 };
             });
             builder.Services.AddScoped<Services.IFDRNotificationService, Services.EventHubFDRNotificationService>();
+
+            builder.Services.AddSingleton<Services.ConfigurationCache>();
         }
     }
 }

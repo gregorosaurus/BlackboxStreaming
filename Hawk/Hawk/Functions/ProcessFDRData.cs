@@ -16,16 +16,17 @@ namespace Hawk.Functions
     public class ProcessFDRData
     {
 
-        private Dictionary<string, DataFrameConfiguration> _configCache = new Dictionary<string, DataFrameConfiguration>();
-
         private IFDRConfigurationService _fdrConfigService;
         private IFDRNotificationService _fdrNotificationService;
-        public ProcessFDRData(IFDRConfigurationService fdrConfigService, IFDRNotificationService fdrNotificationService)
+        private ConfigurationCache _configCache;
+        public ProcessFDRData(
+            IFDRConfigurationService fdrConfigService,
+            IFDRNotificationService fdrNotificationService,
+            ConfigurationCache configCache)
         {
             _fdrConfigService = fdrConfigService;
             _fdrNotificationService = fdrNotificationService;
-
-            _configCache = fdrConfigService.RetrieveAllConfigurationsAsync().Result;
+            _configCache = configCache;
         }
 
 
@@ -56,10 +57,7 @@ namespace Hawk.Functions
 
         private async Task DecodeRawSubframeDataAsync(RawDataMessage message, ILogger log)
         {
-            DataFrameConfiguration? config = null;
-            if (_configCache.ContainsKey(message.AircraftIdentifier))
-                config = _configCache[message.AircraftIdentifier];
-
+            DataFrameConfiguration? config = _configCache.FindDataFrameConfig(message.AircraftIdentifier);
             if(config == null)
             {
                 log.LogWarning($"Unable to find configuration for aircraft with ident: {message.AircraftIdentifier!}");

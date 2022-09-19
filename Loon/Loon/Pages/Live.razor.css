@@ -30,3 +30,8 @@
     color: transparent;
     font-weight: bold;
 }
+
+#gauges > span {
+    width: auto !important;
+    display:inline-block;
+}

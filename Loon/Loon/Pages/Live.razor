@@ -25,7 +25,7 @@
                 <div class="col-md-4">
                     <div class="data-card">
                         <div class="data-card-heading">Speed (Knots)</div>
-                        <div class="data-card-value">@SpeedValue</div>
+                        <div class="data-card-value">@Math.Round(SpeedValue ?? 0, 2)</div>
                     </div>
                 </div>
                 <div class="col-md-4">
@@ -39,6 +39,14 @@
             <div class="row" id="stat-cards" style="margin-top:0.5em;">
 
             </div>
+
+            <div class="row" id="gauges">
+                <span id="airspeed"></span>
+                <span id="attitude"></span>
+                <span id="altimeter"></span>
+                <span id="heading"></span>
+                <span id="variometer"></span>
+            </div>
         </div>
 
     </div>
@@ -48,9 +56,10 @@
 
     private IJSObjectReference? _liveModule;
 
-    private string? AltitudeValue;
-    private string? SpeedValue;
-    private string? HeadingValue;
+    private object? AltitudeValue;
+    private decimal? SpeedValue;
+    private decimal? HeadingValue;
+    private object? verticalSpeedValue;
 
     public DateTime? DataLastReceived;
 
@@ -68,6 +77,8 @@
             _liveModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/modules/live.js");
 
             await _liveModule!.InvokeVoidAsync("initMap", _configuration.GetValue<string>("AzureMapsKey"));
+
+            await _liveModule!.InvokeVoidAsync("initGauges");
         }
     }
 
@@ -84,15 +95,15 @@
             {
                 if (key.Contains("ALTITUDE"))
                 {
-                    this.AltitudeValue = message.DecodedValues[key].LastOrDefault()?.ToString();
+                     this.AltitudeValue = message.DecodedValues[key].LastOrDefault() ?? AltitudeValue;
                 }
                 else if (key.Contains("COMPUTED_AIRSPEED"))
                 {
-                    SpeedValue = message.DecodedValues[key].LastOrDefault()?.ToString();
+                    SpeedValue = message.DecodedValues[key].LastOrDefault() as decimal? ?? SpeedValue;
                 }
                 else if (key.Contains("HEADING"))
                 {
-                    HeadingValue = message.DecodedValues[key].LastOrDefault()?.ToString();
+                    HeadingValue = message.DecodedValues[key].LastOrDefault() as decimal? ?? HeadingValue;
                 }
                 else if (key == "DERIVED_LATITUDE")
                 {
@@ -116,6 +127,7 @@
             }
 
             UpdatePlanePosition();
+            UpdateGauges();
 
             StateHasChanged();
         });
@@ -127,5 +139,10 @@
             return;
 
         await _liveModule!.InvokeVoidAsync("updatePlanePos", lastLatitude.Value, lastLongitude.Value, lastTrueTrackAngle);
+    }
+
+    private async Task UpdateGauges()
+    {
+        await _liveModule!.InvokeVoidAsync("updateGauges", SpeedValue, AltitudeValue, lastTrueTrackAngle, verticalSpeedValue);
     }
 }

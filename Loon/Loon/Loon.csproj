@@ -24,8 +24,9 @@
     <None Remove="Models\" />
     <None Remove="Azure.Messaging.EventHubs.Processor" />
     <None Remove="Utility\" />
+    <None Remove="Azure.Messaging.ServiceBus" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.EventHubs.Processor" Version="5.7.2" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.10.0" />
   </ItemGroup>
 </Project>

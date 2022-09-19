@@ -13,17 +13,15 @@ builder.Services.AddSingleton<DataSubscriptionService.Options>(e =>
 {
     return new DataSubscriptionService.Options()
     {
-        EventHubNamespaceConnectionString = builder.Configuration.GetValue<string>("EventHubConnectionString"),
-        EventHubName = builder.Configuration.GetValue<string>("EventHubName"),
-        EventHubConsumerGroup = builder.Configuration.GetValue<string>("EventHubConsumerGroup"),
-        BlobStorageContainerName = builder.Configuration.GetValue<string>("BlobStorageContainerName"),
-        BlobStorageConnectionString = builder.Configuration.GetValue<string>("BlobStorageConnectionString"),
+        ServiceBusConnectionString = builder.Configuration.GetValue<string>("ServiceBusConnectionString"),
+        ServiceBusTopic = builder.Configuration.GetValue<string>("ServiceBusTopic"),
+        ServiceBusSubscription = builder.Configuration.GetValue<string>("ServiceBusSubscription"),
     };
 });
 
 var app = builder.Build();
 
-app.Services.GetService<DataSubscriptionService>()!.ConnectToEventHubAsync().Wait();
+app.Services.GetService<DataSubscriptionService>()!.Connect();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

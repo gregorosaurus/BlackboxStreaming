@@ -1,11 +1,8 @@
 ﻿using System;
-using Azure.Messaging.EventHubs;
-using System.Diagnostics;
-using Azure.Storage.Blobs;
 using Loon.Models;
-using Azure.Messaging.EventHubs.Processor;
 using System.Text;
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
 
 namespace Loon.Services
 {
@@ -27,24 +24,21 @@ namespace Loon.Services
     {
         public class Options
         {
-            public string? EventHubNamespaceConnectionString { get; set; }
-            public string? EventHubName { get; set; }
-            public string? EventHubConsumerGroup { get; set; }
-            public string? BlobStorageConnectionString { get; set; }
-            public string BlobStorageContainerName { get; set; } = "loon-evh-control";
+            public string? ServiceBusConnectionString { get; set; }
+            public string? ServiceBusTopic { get; set; }
+            public string? ServiceBusSubscription { get; set; }
         }
 
         private List<IDataSubscriptionSubscriber> _subscribers = new List<IDataSubscriptionSubscriber>();
 
-        private DateTime? _lastTimeCheckpointed;
-        private EventProcessorClient _processor;
+        private ServiceBusClient? _sbClient;
+
+        private Options _options;
+        private bool _isRunning = false;
 
         public DataSubscriptionService(Options options)
         {
-            var blobContainerClient = new BlobContainerClient(options.BlobStorageConnectionString, options.BlobStorageContainerName);
-            _processor = new EventProcessorClient(blobContainerClient, options.EventHubConsumerGroup, options.EventHubNamespaceConnectionString, options.EventHubName);
-            _processor.ProcessEventAsync += ProcessEventHandler;
-            _processor.ProcessErrorAsync += ProcessErrorAsync;
+            _options = options;
         }
 
         private Task ProcessErrorAsync(ProcessErrorEventArgs arg)
@@ -61,31 +55,27 @@ namespace Loon.Services
             }
         }
 
-        private async Task ProcessEventHandler(ProcessEventArgs eventArgs)
+        private void ProcessMessage(ServiceBusReceivedMessage? sbMessage)
         {
+            if (sbMessage == null)
+                return;
             // Write the body of the event to the console window
-            Console.WriteLine("\tReceived event: {0}", Encoding.UTF8.GetString(eventArgs.Data.Body.ToArray()));
+            Console.WriteLine("\tReceived event: {0}",sbMessage.Body.ToString());
 
-            if(_lastTimeCheckpointed == null || DateTime.UtcNow - _lastTimeCheckpointed! > TimeSpan.FromSeconds(30))
-            {
-                await eventArgs.UpdateCheckpointAsync(eventArgs.CancellationToken);
-                _lastTimeCheckpointed = DateTime.UtcNow;
-            }
-
-            string json = eventArgs.Data.EventBody.ToString();
-            DecodedDataMessage? message = JsonSerializer.Deserialize<DecodedDataMessage>(json, new JsonSerializerOptions()
+            string json = sbMessage.Body.ToString();
+            DecodedDataMessage? decodedMessage = JsonSerializer.Deserialize<DecodedDataMessage>(json, new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 PropertyNameCaseInsensitive = true,
             });
-            if (message == null)
+            if (decodedMessage == null)
                 return;
 
             lock(_subscribers)
             {
                 foreach(var sub in _subscribers)
                 {
-                    sub.ProcessNewData(message);
+                    sub.ProcessNewData(decodedMessage);
                 }
             }
         }
@@ -101,15 +91,31 @@ namespace Loon.Services
             }
         }
 
-        public async Task ConnectToEventHubAsync()
+        public Task Connect()
         {
-            await _processor.StartProcessingAsync();
+            _isRunning = true;
+            _sbClient = new ServiceBusClient(_options.ServiceBusConnectionString);
+            ServiceBusReceiver receiver = _sbClient.CreateReceiver(_options.ServiceBusTopic, _options.ServiceBusSubscription, new ServiceBusReceiverOptions()
+            {
+                ReceiveMode = ServiceBusReceiveMode.ReceiveAndDelete
+            });
+            return Task.Run(async () =>
+            {
+                while (this._isRunning)
+                {
+                    await foreach(var message in receiver.ReceiveMessagesAsync())
+                    {
+                        ProcessMessage(message);
+                        
+                    }
+                }
+            });
         }
 
         public void Dispose()
         {
-            _processor.ProcessEventAsync -= ProcessEventHandler;
-            _processor.StopProcessing();
+            _sbClient?.DisposeAsync();
+            _sbClient = null;
         }
     }
 }

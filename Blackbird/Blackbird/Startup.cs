@@ -22,15 +22,15 @@ namespace Blackbird
             });
             builder.Services.AddScoped<Services.IQARDataManagementService, Services.AzureQARDataService>();
 
-            builder.Services.AddSingleton<Services.EventHubFDRNotificationService.Options>(e =>
+            builder.Services.AddSingleton<Services.ServiceBusFDRNotificationService.Options>(e =>
             {
-                return new Services.EventHubFDRNotificationService.Options()
+                return new Services.ServiceBusFDRNotificationService.Options()
                 {
-                    EventHubConnectionString = Environment.GetEnvironmentVariable("AzureFDREventHubConnectionString"),
-                    EventHubName = Environment.GetEnvironmentVariable("AzureFDRRawEventHubName")
+                    ServiceBusConnectionString = Environment.GetEnvironmentVariable("AzureServiceBusConnectionString"),
+                    TopicName = Environment.GetEnvironmentVariable("AzureServiceBusTopic")
                 };
             });
-            builder.Services.AddScoped<Services.IFDRDataNotificationService, Services.EventHubFDRNotificationService>();
+            builder.Services.AddScoped<Services.IFDRDataNotificationService, Services.ServiceBusFDRNotificationService>();
         }
     }
 }

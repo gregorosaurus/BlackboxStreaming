@@ -19,59 +19,58 @@ namespace Hawk.Functions
         private IFDRConfigurationService _fdrConfigService;
         private IFDRNotificationService _fdrNotificationService;
         private ConfigurationCache _configCache;
+        private ILogger _log;
+
         public ProcessFDRData(
             IFDRConfigurationService fdrConfigService,
             IFDRNotificationService fdrNotificationService,
-            ConfigurationCache configCache)
+            ConfigurationCache configCache,
+            ILogger<ProcessFDRData> log)
         {
             _fdrConfigService = fdrConfigService;
             _fdrNotificationService = fdrNotificationService;
             _configCache = configCache;
+            _log = log;
         }
 
 
-        [FunctionName("ProcessFDRSubframe")]
-        public async Task ProcessFDRSubframe([EventHubTrigger("evh-blackbox-fdrraw", Connection = "EventHubConnectionString", ConsumerGroup = "hawk")] EventData[] events, ILogger log)
+        [FunctionName("service")]
+        public async Task Run([ServiceBusTrigger("sbt-blackbox-fdrraw", "sbs-blackbox-hawk", Connection = "AzureServiceBusConnectionString")] string sbMessageContent)
         {
-
 #if DEBUG
-            DateTime startTime = DateTime.UtcNow;
-            log.LogInformation($"Started processing message @ {startTime.ToString("yyyy-MM-dd\\THH:mm:ss")}");
+        DateTime startTime = DateTime.UtcNow;
+            _log.LogInformation($"Started processing message @ {startTime.ToString("yyyy-MM-dd\\THH:mm:ss")}");
 #endif
-            var exceptions = new List<Exception>();
-
-            foreach (EventData eventData in events)
+        var exceptions = new List<Exception>();
+            try
             {
-                try
-                {
-                    RawDataMessage? dataMessage = JsonSerializer.Deserialize<RawDataMessage>(eventData.EventBody.ToString(),
-                        new JsonSerializerOptions()
-                        {
-                            PropertyNameCaseInsensitive = true,
-                            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                        });
-                    if (dataMessage != null)
-                        await DecodeRawSubframeDataAsync(dataMessage!, log);
-                }
-                catch (Exception e)
-                {
-                    exceptions.Add(e);
-                }
+                RawDataMessage? dataMessage = JsonSerializer.Deserialize<RawDataMessage>(sbMessageContent,
+                    new JsonSerializerOptions()
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+                if (dataMessage != null)
+                    await DecodeRawSubframeDataAsync(dataMessage!);
+            }
+            catch (Exception e)
+            {
+                exceptions.Add(e);
             }
 #if DEBUG
             DateTime endTime = DateTime.UtcNow;
-            log.LogTrace($"Finished processing message @ {endTime.ToString("yyyy-MM-dd\\THH:mm:ss")}");
-            log.LogTrace($"Total processing time {(endTime - startTime).TotalSeconds}");
+            _log.LogTrace($"Finished processing message @ {endTime.ToString("yyyy-MM-dd\\THH:mm:ss")}");
+            _log.LogTrace($"Total processing time {(endTime - startTime).TotalSeconds}");
 #endif
 
         }
 
-        private async Task DecodeRawSubframeDataAsync(RawDataMessage message, ILogger log)
+        private async Task DecodeRawSubframeDataAsync(RawDataMessage message)
         {
             DataFrameConfiguration? config = _configCache.FindDataFrameConfig(message.AircraftIdentifier);
             if(config == null)
             {
-                log.LogWarning($"Unable to find configuration for aircraft with ident: {message.AircraftIdentifier!}");
+                _log.LogWarning($"Unable to find configuration for aircraft with ident: {message.AircraftIdentifier!}");
                 return;
             }
 

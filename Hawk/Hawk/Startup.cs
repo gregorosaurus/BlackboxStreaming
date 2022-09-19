@@ -24,15 +24,15 @@ namespace Hawk
 
             builder.Services.AddSingleton<Services.IFDRConfigurationService, Services.AzureBlobConfigurationService>();
 
-            builder.Services.AddSingleton<Services.EventHubFDRNotificationService.Options>(e =>
+            builder.Services.AddSingleton<Services.ServiceBusFDRNotificationService.Options>(e =>
             {
-                return new Services.EventHubFDRNotificationService.Options()
+                return new Services.ServiceBusFDRNotificationService.Options()
                 {
-                    EventHubConnectionString = Environment.GetEnvironmentVariable("EventHubConnectionString"),
-                    EventHubName = "evh-blackbox-decoded"
+                    ServiceBusConnectionString = Environment.GetEnvironmentVariable("AzureServiceBusConnectionString"),
+                    TopicName = "sbt-blackbox-decoded"
                 };
             });
-            builder.Services.AddSingleton<Services.IFDRNotificationService, Services.EventHubFDRNotificationService>();
+            builder.Services.AddSingleton<Services.IFDRNotificationService, Services.ServiceBusFDRNotificationService>();
 
             builder.Services.AddSingleton<Services.ConfigurationCache>();
         }

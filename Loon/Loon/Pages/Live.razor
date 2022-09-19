@@ -47,6 +47,14 @@
                 <span id="heading"></span>
                 <span id="variometer"></span>
             </div>
+
+            <div class="row" id="charts">
+                <div class="col-12">
+                    <div class="data-card">
+                        <canvas id="altitudeChart" style="width:100%; height:400px;"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -79,6 +87,7 @@
             await _liveModule!.InvokeVoidAsync("initMap", _configuration.GetValue<string>("AzureMapsKey"));
 
             await _liveModule!.InvokeVoidAsync("initGauges");
+            await _liveModule!.InvokeVoidAsync("initCharts");
         }
     }
 

@@ -85,4 +85,64 @@ export function updateGauges(speed, altitude, trackAngle, verticalSpeed) {
     _altitude = altitude;
     _heading = trackAngle;
     _speed = speed;
+
+    updateAltitudeChart(altitude);
+}
+
+var altitudeChart;
+
+export function initCharts() {
+
+    var canvas = document.getElementById('altitudeChart');
+    if (canvas == null)
+        return;
+
+    const ctx = canvas.getContext('2d');
+
+    const data = {
+        labels: [],
+        datasets: [
+            {
+                label: 'Altitude',
+                data: [],
+                borderColor: '#0056a6',
+                backgroundColor: '#0056a6'
+            },
+        ]
+    };
+
+    altitudeChart = new Chart(ctx, {
+        type: 'line',
+        data: data,
+        options: {
+            plugins: {
+                legend: {
+                    display: false,
+                },
+                title: {
+                    display: false,
+                }
+            },
+            scales: {
+                x: {
+                    display: false,
+                },
+                y: {
+                    display: true,
+                }
+            },
+            maintainAspectRatio: false,
+            tension: 0.1,
+            pointRadius: 0,
+            borderWidth:5
+        }
+    });
+}
+
+export function updateAltitudeChart(altitude) {
+    altitudeChart.data.labels.push("");
+    altitudeChart.data.datasets.forEach((dataset) => {
+        dataset.data.push(altitude);
+    });
+    altitudeChart.update();
 }

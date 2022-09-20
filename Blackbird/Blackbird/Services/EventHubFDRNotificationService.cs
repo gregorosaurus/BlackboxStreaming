@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
@@ -35,6 +36,11 @@ namespace Blackbird.Services
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             }));
             await _producer.SendAsync(new EventData[] { eventData });
+        }
+
+        public Task NotifyOfNewDecodedDataAsync(string acIdent, Dictionary<string, List<object>> values)
+        {
+            throw new NotImplementedException();
         }
     }
 }

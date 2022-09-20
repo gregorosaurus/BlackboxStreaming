@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
@@ -13,24 +14,47 @@ namespace Blackbird.Services
         public class Options
         {
             public string? ServiceBusConnectionString { get; set; }
-            public string? TopicName { get; set; }
+            public string? RawTopicName { get; set; }
+            public string? DecodedTopicName { get; set; }
         }
 
         private Options _options;
         public ServiceBusFDRNotificationService(Options option)
         {
             _options = option;
+
+            if (_options.RawTopicName == null)
+                throw new ArgumentNullException("RawTopicName");
+
+            if (_options.DecodedTopicName == null)
+                throw new ArgumentNullException("DecodedTopicName");
         }
+
+        public async Task NotifyOfNewDecodedDataAsync(string acIdent, Dictionary<string, List<object>> values)
+        {
+            await SendServiceBusMessage(acIdent, new DecodedDataMessage()
+            {
+                AircraftIdentifier = acIdent,
+                DecodedValues = values,
+                ProcessedTime = DateTime.UtcNow
+            }, _options.DecodedTopicName!);
+        }
+
 
         public async Task NotifyOfNewSubframeDataAsync(string acIdent, byte[] subframeData)
         {
+            await SendServiceBusMessage(acIdent, new RawDataMessage(acIdent, subframeData), _options.RawTopicName!);
+        }
+
+        private async Task SendServiceBusMessage(string acIdent, object msgObj, string topic)
+        {
+
             await using var client = new ServiceBusClient(_options.ServiceBusConnectionString);
 
             // create the sender
-            ServiceBusSender sender = client.CreateSender(_options.TopicName);
+            ServiceBusSender sender = client.CreateSender(topic);
 
-            RawDataMessage msg = new RawDataMessage(acIdent, subframeData);
-            var json = JsonSerializer.Serialize(msg, new JsonSerializerOptions()
+            var json = JsonSerializer.Serialize(msgObj, new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });

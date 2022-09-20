@@ -27,7 +27,8 @@ namespace Blackbird
                 return new Services.ServiceBusFDRNotificationService.Options()
                 {
                     ServiceBusConnectionString = Environment.GetEnvironmentVariable("AzureServiceBusConnectionString"),
-                    TopicName = Environment.GetEnvironmentVariable("AzureServiceBusTopic")
+                    RawTopicName = Environment.GetEnvironmentVariable("AzureServiceBusTopicRawData"),
+                    DecodedTopicName = Environment.GetEnvironmentVariable("AzureServiceBusTopicDecodedData")
                 };
             });
             builder.Services.AddScoped<Services.IFDRDataNotificationService, Services.ServiceBusFDRNotificationService>();

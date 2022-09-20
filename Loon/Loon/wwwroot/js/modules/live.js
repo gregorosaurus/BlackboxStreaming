@@ -46,10 +46,19 @@ var turn_coordinatorInstrument;
 var _altitude = 0
 var _speed = 0;
 var _heading = 0;
+var _verticalSpeed = 0;
+var _turnRate = 0;
+var _pitch = 0;
+var _roll = 0;
 
 var instrAltitude = 0;
 var instrSpeed = 0;
 var instrHeading = 0;
+var instrVerticalSpeed = 0;
+var instrTurnRate = 0;
+var instrPitch = 0;
+var instrRoll = 0;
+
 
 export function initGauges() {
     attitudeInstrument = $.flightIndicator('#attitude', 'attitude', { roll: 50, pitch: -20, size: 300, showBox: true });
@@ -57,7 +66,7 @@ export function initGauges() {
     variometerInstrument = $.flightIndicator('#variometer', 'variometer', { vario: -5, size: 300, showBox: true });
     airspeedInstrument = $.flightIndicator('#airspeed', 'airspeed', { size: 300, showBox: true });
     altimeterInstrument = $.flightIndicator('#altimeter', 'altimeter', { size: 300, showBox: true });
-    //turn_coordinator = $.flightIndicator('#turn_coordinator', 'turn_coordinator', { turn: 0 });
+    turn_coordinatorInstrument = $.flightIndicator('#turn_coordinator', 'turn_coordinator', { turn: 0, size: 300, });
 
 
     setInterval(function () {
@@ -78,13 +87,37 @@ export function initGauges() {
         instrHeading = headingChange + instrHeading
         headingInstrument.setHeading(instrHeading);
 
+        var verticalSpeedDiff = _verticalSpeed - instrVerticalSpeed;
+        var verticalSpeedChange = verticalSpeedDiff / 50.0;
+        instrVerticalSpeed = verticalSpeedChange + instrVerticalSpeed;
+        variometerInstrument.setVario(instrVerticalSpeed);
+
+        var turnRateDiff = _turnRate - instrTurnRate;
+        var turnRateChange = turnRateDiff / 50.0;
+        instrTurnRate = turnRateChange + instrTurnRate;
+        turn_coordinatorInstrument.setTurn(instrTurnRate);
+
+        var rollDiff = _roll - instrRoll;
+        var rollChange = rollDiff / 50.0;
+        instrRoll = rollChange + instrRoll;
+        attitudeInstrument.setRoll(instrRoll);
+
+        var pitchDiff = _pitch - instrPitch;
+        var pitchChange = pitchDiff / 50.0;
+        instrPitch = pitchChange + instrPitch;
+        attitudeInstrument.setPitch(instrPitch);
+
     }, 50);
 }
 
-export function updateGauges(speed, altitude, trackAngle, verticalSpeed) {
+export function updateGauges(speed, altitude, trackAngle, verticalSpeed, turnRate, rollAngle, pitchAngle) {
     _altitude = altitude;
     _heading = trackAngle;
     _speed = speed;
+    _verticalSpeed = verticalSpeed;
+    _turnRate = turnRate;
+    _roll = -rollAngle; //roll is opposite on the gauges. 
+    _pitch = pitchAngle * 1.5; /*make it bigger so it just looks bigger on the display*/
 
     updateAltitudeChart(altitude);
 }

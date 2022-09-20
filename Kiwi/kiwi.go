@@ -86,7 +86,7 @@ func startEmulationDecoded() {
 	for i, firstRowData := range firstRow {
 		if dateRegex.FindString(firstRowData) != "" {
 			indexOfTime = i
-			currentTime, _ = time.Parse("2006-01-02 15:05:04", strings.ReplaceAll(firstRowData, "T", ""))
+			currentTime, _ = time.Parse("2006-01-02 15:04:05", strings.ReplaceAll(firstRowData, "T", ""))
 			break
 		}
 	}
@@ -107,12 +107,14 @@ func startEmulationDecoded() {
 	for readErr == nil {
 		row, readErr = csvReader.Read()
 
-		rowTime, _ := time.Parse("2006-01-02 15:05:04", strings.ReplaceAll(row[indexOfTime], "T", ""))
+		rowTime, _ := time.Parse("2006-01-02 15:04:05", strings.ReplaceAll(row[indexOfTime], "T", ""))
 		if rowTime.Before(nextTimeToGoTo) {
 			continue
 		} else {
-			nextTimeToGoTo = nextTimeToGoTo.Add(time.Second * 1)
+			nextTimeToGoTo = rowTime.Add(time.Second * 1)
 		}
+
+		log.Printf("Next time is %s\n", nextTimeToGoTo.Format(time.RFC3339))
 
 		log.Printf("Sending csv data for time %s\n", rowTime.Format(time.RFC3339))
 

@@ -44,6 +44,7 @@
                 <span id="airspeed"></span>
                 <span id="attitude"></span>
                 <span id="altimeter"></span>
+                <span id="turn_coordinator"></span>
                 <span id="heading"></span>
                 <span id="variometer"></span>
             </div>
@@ -67,15 +68,18 @@
     private object? AltitudeValue;
     private decimal? SpeedValue;
     private decimal? HeadingValue;
-    private object? verticalSpeedValue;
 
     public DateTime? DataLastReceived;
 
     private Dictionary<string, object> LatestValues = new Dictionary<string, object>();
 
-    private decimal? lastLatitude;
-    private decimal? lastLongitude;
+    private object? lastLatitude;
+    private object? lastLongitude;
     private decimal? lastTrueTrackAngle;
+    private object? lastPitchAngle;
+    private object? lastRollAngle;
+    private object? lastTurnRate;
+    private object? lastVericalSpeed;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -102,29 +106,49 @@
             DataLastReceived = DateTime.UtcNow;
             foreach (var key in message.DecodedValues.Keys)
             {
-                if (key.Contains("ALTITUDE"))
+                if (key.Contains("ALTITUDE") || key == "GPS Altitude (feet)")
                 {
-                     this.AltitudeValue = message.DecodedValues[key].LastOrDefault() ?? AltitudeValue;
+                    this.AltitudeValue = message.DecodedValues[key].LastOrDefault() ?? AltitudeValue;
                 }
-                else if (key.Contains("COMPUTED_AIRSPEED"))
+                else if (key.Contains("COMPUTED_AIRSPEED") || key == "True Airspeed (knots)")
                 {
                     SpeedValue = message.DecodedValues[key].LastOrDefault() as decimal? ?? SpeedValue;
                 }
-                else if (key.Contains("HEADING"))
+                else if (key.Contains("HEADING") || key.Contains("Magnetic Heading (deg)"))
                 {
                     HeadingValue = message.DecodedValues[key].LastOrDefault() as decimal? ?? HeadingValue;
                 }
-                else if (key == "DERIVED_LATITUDE")
+                else if (key == "DERIVED_LATITUDE" || key == "Latitude (deg)")
                 {
                     lastLatitude = message.DecodedValues[key].FirstOrDefault() as decimal? ?? lastLatitude;
                 }
-                else if (key == "DERIVED_LONGITUDE")
+                else if (key == "DERIVED_LONGITUDE" || key == "Longitude (deg)")
                 {
                     lastLongitude = message.DecodedValues[key].FirstOrDefault() as decimal? ?? lastLongitude;
                 }
-                else if (key.Contains("TRACK_ANGLE_TRUE"))
+                else if (key.Contains("TRACK_ANGLE_TRUE") || key == "Ground Track (deg)")
                 {
                     lastTrueTrackAngle = message.DecodedValues[key].FirstOrDefault() as decimal? ?? lastTrueTrackAngle;
+                }
+                else if (key == "Pitch (deg)")
+                {
+                    lastPitchAngle = message.DecodedValues[key].FirstOrDefault() ?? lastPitchAngle;
+                }
+                else if (key == "Roll (deg)")
+                {
+                    lastRollAngle = message.DecodedValues[key].FirstOrDefault() ?? lastRollAngle;
+                }else if (key == "Vertical Speed (ft/min)")
+                {
+                    lastVericalSpeed = message.DecodedValues[key].FirstOrDefault() ?? lastVericalSpeed;
+                    if (lastVericalSpeed != null)
+                    {
+                        lastVericalSpeed = Convert.ToDouble(lastVericalSpeed!);
+                        lastVericalSpeed = (double)lastVericalSpeed! / 1000.0;
+                    }
+                }
+                else if (key == "Turn Rate (deg/s)")
+                {
+                    lastTurnRate = message.DecodedValues[key].FirstOrDefault() ?? lastTurnRate;
                 }
 
                 if (!LatestValues.ContainsKey(key))
@@ -147,11 +171,11 @@
         if (lastLongitude == null || lastLatitude == null)
             return;
 
-        await _liveModule!.InvokeVoidAsync("updatePlanePos", lastLatitude.Value, lastLongitude.Value, lastTrueTrackAngle);
+        await _liveModule!.InvokeVoidAsync("updatePlanePos", lastLatitude, lastLongitude, lastTrueTrackAngle);
     }
 
     private async Task UpdateGauges()
     {
-        await _liveModule!.InvokeVoidAsync("updateGauges", SpeedValue, AltitudeValue, lastTrueTrackAngle, verticalSpeedValue);
+        await _liveModule!.InvokeVoidAsync("updateGauges", SpeedValue, AltitudeValue, lastTrueTrackAngle, lastVericalSpeed, lastTurnRate, lastRollAngle, lastPitchAngle);
     }
 }

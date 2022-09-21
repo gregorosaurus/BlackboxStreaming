@@ -156,8 +156,10 @@ func sendDecodedJsonData(httpClient *http.Client, json string) {
 	}
 	response, err := httpClient.Post(requestUrl, "application/json", strings.NewReader(json))
 	if err != nil {
-		log.Fatalf("Unable to send data to endpoint: %s", err)
+		log.Printf("Unable to send data to endpoint: %s", err)
+		return
 	}
+	response.Body.Close()
 
 	if response.StatusCode != 200 {
 		if b, err := io.ReadAll(response.Body); err == nil {

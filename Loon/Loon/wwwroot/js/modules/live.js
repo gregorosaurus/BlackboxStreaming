@@ -4,7 +4,7 @@ var _map, _marker;
 
 export function initMap(subscriptionKey) {
     _map = new atlas.Map('map-area', {
-        center: [-114.3741, 51.1028],
+        center: [-114.36397546454964, 51.10416347244066],
         style: 'grayscale_dark',
         zoom: 14,
         language: 'en-US',
@@ -19,7 +19,7 @@ export function initMap(subscriptionKey) {
         //Create a HTML marker and add it to the map.
         _marker = new atlas.HtmlMarker({
             htmlContent: '<div class="plane-container"><img src=\"/img/plane_blue.png\"/><div class="pulseIcon"></div></div>',
-            position: [-114.3741, 51.1028]
+            position: [-114.36397546454964, 51.10416347244066]
         });
 
         _map.markers.add(_marker);
